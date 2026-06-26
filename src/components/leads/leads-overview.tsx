@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Lead } from "@/lib/app-data";
 import { SurfaceCard } from "@/components/ui/surface-card";
 
@@ -61,7 +62,9 @@ export function LeadsOverview({ leads, created = false }: LeadsOverviewProps) {
             <article key={lead.id} className="table-like__row lead-row">
               <div>
                 <div className="lead-row__header">
-                  <strong>{lead.name}</strong>
+                  <Link href={`/leads/${lead.id}`} className="lead-row__link">
+                    <strong>{lead.name}</strong>
+                  </Link>
                   <span className={`warmth-pill warmth-pill-${lead.warmth}`}>
                     {lead.warmth}
                   </span>
@@ -86,6 +89,11 @@ export function LeadsOverview({ leads, created = false }: LeadsOverviewProps) {
               <div>
                 <span className="table-like__label">Next step</span>
                 <strong>{lead.nextStep}</strong>
+                <p>
+                  <Link href={`/leads/${lead.id}`} className="inline-link">
+                    Lead oeffnen
+                  </Link>
+                </p>
               </div>
             </article>
           ))}

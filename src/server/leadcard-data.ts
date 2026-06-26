@@ -3,6 +3,7 @@ import "server-only";
 import {
   clients as demoClients,
   dashboardStats as demoDashboardStats,
+  demoLeadReviewData,
   events as demoEvents,
   leads as demoLeads,
   pipelineSteps,
@@ -12,11 +13,12 @@ import {
   type DashboardStat,
   type EventItem,
   type Lead,
+  type LeadReviewData,
   type PipelineStep,
   type QualificationQuestion,
   type QuickAction
 } from "@/lib/app-data";
-import { hasSupabaseEnv } from "@/lib/supabase/config";
+import { getBusinessCardBucket, hasSupabaseEnv } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 type DashboardData = {
@@ -131,6 +133,101 @@ export async function getClientsData() {
 
 export async function getLeadsData() {
   return (await getDashboardData()).leads;
+}
+
+export async function getLeadReviewData(leadId: string): Promise<LeadReviewData | null> {
+  if (!hasSupabaseEnv()) {
+    return demoLeadReviewData.id === leadId ? demoLeadReviewData : null;
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("leads")
+    .select(
+      `
+        id,
+        source_type,
+        status,
+        warmth,
+        next_step,
+        raw_notes,
+        contacts (id, full_name, company_name, job_title, email, phone, linkedin_url, website),
+        clients (name),
+        events (name),
+        business_card_assets (id, image_path, ocr_raw_text, created_at),
+        qualification_responses (id, answers, priority, created_at)
+      `
+    )
+    .eq("id", leadId)
+    .single();
+
+  if (error || !data) {
+    return null;
+  }
+
+  const contact = Array.isArray(data.contacts) ? data.contacts[0] : data.contacts;
+  const client = Array.isArray(data.clients) ? data.clients[0] : data.clients;
+  const event = Array.isArray(data.events) ? data.events[0] : data.events;
+  const cardAssets = Array.isArray(data.business_card_assets) ? data.business_card_assets : [];
+  const latestCardAsset =
+    cardAssets.sort((left, right) => right.created_at.localeCompare(left.created_at))[0] ?? null;
+  const qualificationResponses = Array.isArray(data.qualification_responses)
+    ? data.qualification_responses
+    : [];
+  const latestQualification =
+    qualificationResponses.sort((left, right) =>
+      right.created_at.localeCompare(left.created_at)
+    )[0] ?? null;
+
+  let businessCardImageUrl: string | null = null;
+
+  if (latestCardAsset?.image_path) {
+    const signedUrlResult = await supabase.storage
+      .from(getBusinessCardBucket())
+      .createSignedUrl(latestCardAsset.image_path, 60 * 60);
+
+    if (!signedUrlResult.error) {
+      businessCardImageUrl = signedUrlResult.data.signedUrl;
+    }
+  }
+
+  const answers =
+    latestQualification?.answers && typeof latestQualification.answers === "object"
+      ? latestQualification.answers
+      : {};
+
+  return {
+    id: data.id,
+    client: client?.name ?? "Ohne Client",
+    event: event?.name ?? "Ohne Event",
+    sourceType: data.source_type ?? "manual",
+    status: data.status ?? "draft",
+    warmth: data.warmth === "heiss" || data.warmth === "kalt" ? data.warmth : "warm",
+    nextStep: data.next_step ?? "",
+    rawNotes: data.raw_notes ?? "",
+    fullName: contact?.full_name ?? "",
+    companyName: contact?.company_name ?? "",
+    jobTitle: contact?.job_title ?? "",
+    email: contact?.email ?? "",
+    phone: contact?.phone ?? "",
+    linkedinUrl: contact?.linkedin_url ?? "",
+    website: contact?.website ?? "",
+    hasBusinessCard: Boolean(latestCardAsset),
+    businessCardImageUrl,
+    businessCardImagePath: latestCardAsset?.image_path ?? null,
+    ocrRawText: latestCardAsset?.ocr_raw_text ?? "",
+    qualificationAnswers: {
+      need: typeof answers.need === "string" ? answers.need : "",
+      roleFit: typeof answers.roleFit === "string" ? answers.roleFit : "",
+      timing: typeof answers.timing === "string" ? answers.timing : "",
+      priority:
+        typeof latestQualification?.priority === "string"
+          ? latestQualification.priority
+          : typeof answers.priority === "string"
+            ? answers.priority
+            : ""
+    }
+  };
 }
 
 export async function getEventsData(): Promise<EventItem[]> {

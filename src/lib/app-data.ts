@@ -47,6 +47,34 @@ export type Lead = {
   needsCardReview: boolean;
 };
 
+export type LeadReviewData = {
+  id: string;
+  client: string;
+  event: string;
+  sourceType: string;
+  status: string;
+  warmth: "heiss" | "warm" | "kalt";
+  nextStep: string;
+  rawNotes: string;
+  fullName: string;
+  companyName: string;
+  jobTitle: string;
+  email: string;
+  phone: string;
+  linkedinUrl: string;
+  website: string;
+  hasBusinessCard: boolean;
+  businessCardImageUrl: string | null;
+  businessCardImagePath: string | null;
+  ocrRawText: string;
+  qualificationAnswers: {
+    need: string;
+    roleFit: string;
+    timing: string;
+    priority: string;
+  };
+};
+
 export type QuickAction = {
   title: string;
   description: string;
@@ -238,3 +266,31 @@ export const qualificationQuestions: QualificationQuestion[] = [
     helper: "Follow-up, Intro mit Kunde, kein Fit, Research"
   }
 ];
+
+export const demoLeadReviewData: LeadReviewData = {
+  id: "lead-4",
+  client: "Nordic Robotics",
+  event: "Hannover Messe",
+  sourceType: "business_card",
+  status: "OCR offen",
+  warmth: "kalt",
+  nextStep: "Visitenkarte pruefen und Quali ergaenzen",
+  rawNotes: "Standgespraech war freundlich. Bedarf noch unscharf, aber Werkleitung will intern pruefen.",
+  fullName: "Kemal Yilmaz",
+  companyName: "ForgeLine",
+  jobTitle: "Plant Director",
+  email: "",
+  phone: "",
+  linkedinUrl: "",
+  website: "https://forgeline.example",
+  hasBusinessCard: true,
+  businessCardImageUrl: null,
+  businessCardImagePath: "demo/lead-4/business-card.jpg",
+  ocrRawText: "",
+  qualificationAnswers: {
+    need: "Interesse",
+    roleFit: "Einflussnehmer",
+    timing: "6 Monate",
+    priority: "mittel"
+  }
+};

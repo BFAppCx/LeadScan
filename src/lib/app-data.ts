@@ -43,6 +43,8 @@ export type Lead = {
   status: string;
   nextStep: string;
   warmth: "heiss" | "warm" | "kalt";
+  hasBusinessCard: boolean;
+  needsCardReview: boolean;
 };
 
 export type QuickAction = {
@@ -169,7 +171,9 @@ export const leads: Lead[] = [
     event: "Food Innovation Camp",
     status: "Research offen",
     nextStep: "Website pruefen und Intro-Mail vorbereiten",
-    warmth: "warm"
+    warmth: "warm",
+    hasBusinessCard: true,
+    needsCardReview: false
   },
   {
     id: "lead-2",
@@ -180,7 +184,9 @@ export const leads: Lead[] = [
     event: "Hannover Messe",
     status: "Follow-up planen",
     nextStep: "Demo-Interesse mit Kunde abstimmen",
-    warmth: "heiss"
+    warmth: "heiss",
+    hasBusinessCard: false,
+    needsCardReview: false
   },
   {
     id: "lead-3",
@@ -191,7 +197,9 @@ export const leads: Lead[] = [
     event: "Food Innovation Camp",
     status: "Export bereit",
     nextStep: "Ins CRM uebernehmen",
-    warmth: "heiss"
+    warmth: "heiss",
+    hasBusinessCard: true,
+    needsCardReview: false
   },
   {
     id: "lead-4",
@@ -200,9 +208,11 @@ export const leads: Lead[] = [
     title: "Plant Director",
     client: "Nordic Robotics",
     event: "Hannover Messe",
-    status: "Quali pruefen",
-    nextStep: "Budgetsignal nachtragen",
-    warmth: "kalt"
+    status: "OCR offen",
+    nextStep: "Visitenkarte pruefen und Quali ergaenzen",
+    warmth: "kalt",
+    hasBusinessCard: true,
+    needsCardReview: true
   }
 ];
 

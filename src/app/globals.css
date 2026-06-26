@@ -411,6 +411,27 @@ textarea {
   letter-spacing: 0.08em;
 }
 
+.meta-pill,
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.meta-pill {
+  background: #efe6d8;
+  color: #6f5641;
+}
+
+.status-pill-warning {
+  background: #fbe7dc;
+  color: #9a3b11;
+}
+
 .warmth-pill-heiss {
   background: #fde9df;
   color: #9a3b11;

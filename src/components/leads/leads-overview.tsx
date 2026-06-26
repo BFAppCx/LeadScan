@@ -14,12 +14,16 @@ function countByStatus(leads: Lead[], status: string) {
   return leads.filter((lead) => lead.status === status).length;
 }
 
+function countByCardReview(leads: Lead[]) {
+  return leads.filter((lead) => lead.needsCardReview).length;
+}
+
 export function LeadsOverview({ leads, created = false }: LeadsOverviewProps) {
   return (
     <div className="content-grid">
       {created ? (
         <p className="form-notice form-notice-success">
-          Lead wurde gespeichert und liegt jetzt in deiner Inbox.
+          Lead wurde gespeichert und liegt jetzt in deiner Inbox zur weiteren Bearbeitung.
         </p>
       ) : null}
 
@@ -37,15 +41,15 @@ export function LeadsOverview({ leads, created = false }: LeadsOverviewProps) {
           <strong>{countByStatus(leads, "Follow-up planen")}</strong>
         </article>
         <article className="stat-card">
-          <span>Research offen</span>
-          <strong>{countByStatus(leads, "Research offen")}</strong>
+          <span>OCR offen</span>
+          <strong>{countByCardReview(leads)}</strong>
         </article>
       </section>
 
       <SurfaceCard title="Lead Inbox">
         <div className="filter-row">
           <span className="filter-chip">Alle</span>
-          <span className="filter-chip filter-chip-active">Heiss</span>
+          <span className="filter-chip filter-chip-active">OCR</span>
           <span className="filter-chip">Warm</span>
           <span className="filter-chip">Kalt</span>
           <span className="filter-chip">Research</span>
@@ -61,6 +65,10 @@ export function LeadsOverview({ leads, created = false }: LeadsOverviewProps) {
                   <span className={`warmth-pill warmth-pill-${lead.warmth}`}>
                     {lead.warmth}
                   </span>
+                  {lead.hasBusinessCard ? <span className="meta-pill">Karte</span> : null}
+                  {lead.needsCardReview ? (
+                    <span className="status-pill status-pill-warning">OCR offen</span>
+                  ) : null}
                 </div>
                 <p>
                   {lead.title} · {lead.company}

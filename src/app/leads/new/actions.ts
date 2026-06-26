@@ -26,6 +26,7 @@ export async function createLeadAction(
   const rawNotes = String(formData.get("rawNotes") ?? "").trim();
   const warmth = String(formData.get("warmth") ?? "warm").trim();
   const businessCardImage = formData.get("businessCardImage");
+  const hasBusinessCardUpload = businessCardImage instanceof File && businessCardImage.size > 0;
 
   const fieldErrors: NewLeadFormState["fieldErrors"] = {};
 
@@ -71,9 +72,11 @@ export async function createLeadAction(
       client_id: clientId,
       event_id: eventId || null,
       source_type: sourceType,
-      status: "draft",
+      status: hasBusinessCardUpload ? "OCR offen" : "draft",
       warmth,
-      next_step: nextStep || null,
+      next_step:
+        nextStep ||
+        (hasBusinessCardUpload ? "Visitenkarte pruefen und Quali ergaenzen" : null),
       raw_notes: rawNotes || null
     })
     .select("id")
@@ -108,7 +111,7 @@ export async function createLeadAction(
     };
   }
 
-  if (businessCardImage instanceof File && businessCardImage.size > 0) {
+  if (hasBusinessCardUpload) {
     const bucket = getBusinessCardBucket();
     const extension = businessCardImage.name.includes(".")
       ? businessCardImage.name.split(".").pop()?.toLowerCase()
@@ -145,6 +148,7 @@ export async function createLeadAction(
     });
 
     if (assetInsert.error) {
+      await supabase.storage.from(bucket).remove([filePath]);
       await supabase.from("leads").delete().eq("id", leadInsert.data.id);
       return {
         error: `Visitenkarten-Metadaten konnten nicht gespeichert werden: ${assetInsert.error.message}`

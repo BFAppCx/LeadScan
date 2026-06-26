@@ -66,6 +66,7 @@ export async function getDashboardData(): Promise<DashboardData> {
           status,
           warmth,
           next_step,
+          business_card_assets (id),
           contacts (full_name, company_name, job_title),
           clients (name),
           events (name)
@@ -82,6 +83,9 @@ export async function getDashboardData(): Promise<DashboardData> {
     const contact = Array.isArray(lead.contacts) ? lead.contacts[0] : lead.contacts;
     const client = Array.isArray(lead.clients) ? lead.clients[0] : lead.clients;
     const event = Array.isArray(lead.events) ? lead.events[0] : lead.events;
+    const hasBusinessCard =
+      Array.isArray(lead.business_card_assets) && lead.business_card_assets.length > 0;
+    const normalizedStatus = lead.status || "draft";
 
     return {
       id: lead.id,
@@ -90,9 +94,11 @@ export async function getDashboardData(): Promise<DashboardData> {
       title: contact?.job_title ?? "Ohne Rolle",
       client: client?.name ?? "Ohne Client",
       event: event?.name ?? "Ohne Event",
-      status: lead.status,
+      status: normalizedStatus,
       nextStep: lead.next_step ?? "Noch kein naechster Schritt",
-      warmth: lead.warmth === "heiss" || lead.warmth === "kalt" ? lead.warmth : "warm"
+      warmth: lead.warmth === "heiss" || lead.warmth === "kalt" ? lead.warmth : "warm",
+      hasBusinessCard,
+      needsCardReview: hasBusinessCard && normalizedStatus === "OCR offen"
     };
   });
 

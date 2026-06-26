@@ -54,6 +54,10 @@ textarea {
   background: var(--surface);
 }
 
+button {
+  cursor: pointer;
+}
+
 input,
 select,
 textarea {
@@ -409,6 +413,40 @@ textarea {
 
 .field-full {
   grid-column: 1 / -1;
+}
+
+.field-error {
+  color: #a03621;
+}
+
+.field-control-error {
+  border-color: #d7674d;
+  box-shadow: 0 0 0 3px rgba(215, 103, 77, 0.12);
+}
+
+.form-notice {
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: 16px;
+}
+
+.form-notice-error {
+  background: #fdebe6;
+  color: #8a341c;
+}
+
+.primary-button {
+  min-height: 52px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--accent) 0%, var(--accent-strong) 100%);
+  color: #fff;
+  font-weight: 700;
+}
+
+.primary-button:disabled {
+  opacity: 0.7;
+  cursor: default;
 }
 
 @media (max-width: 980px) {

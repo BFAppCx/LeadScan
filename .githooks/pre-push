@@ -1,0 +1,5 @@
+#!/bin/sh
+set -eu
+
+echo "LeadCard pre-push: full verification must pass before push."
+cmd //c npm.cmd run verify

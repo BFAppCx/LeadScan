@@ -2,4 +2,12 @@
 set -eu
 
 echo "LeadCard pre-push: full verification must pass before push."
-cmd //c npm.cmd run verify
+NODE_EXE="/c/Program Files/nodejs/node.exe"
+
+if [ ! -x "$NODE_EXE" ]; then
+  echo "Node.js wurde nicht unter $NODE_EXE gefunden."
+  exit 1
+fi
+
+"$NODE_EXE" ./node_modules/typescript/bin/tsc --noEmit
+"$NODE_EXE" ./node_modules/next/dist/bin/next build

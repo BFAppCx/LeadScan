@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import Image from "next/image";
+import { useActionState, useMemo, useState } from "react";
 import type {
   Client,
   EventItem,
@@ -22,6 +23,15 @@ export function NewLeadForm({
 }: NewLeadFormProps) {
   const initialState: NewLeadFormState = {};
   const [state, formAction, isPending] = useActionState(createLeadAction, initialState);
+  const [previewFile, setPreviewFile] = useState<File | null>(null);
+
+  const previewUrl = useMemo(() => {
+    if (!previewFile) {
+      return null;
+    }
+
+    return URL.createObjectURL(previewFile);
+  }, [previewFile]);
 
   return (
     <div className="content-grid">
@@ -45,6 +55,44 @@ export function NewLeadForm({
                 <option value="kalt">Kalt</option>
               </select>
             </label>
+
+            <label className="field field-full">
+              <span>Visitenkarte hochladen</span>
+              <input
+                type="file"
+                name="businessCardImage"
+                accept="image/png,image/jpeg,image/webp"
+                onChange={(event) => {
+                  const nextFile = event.currentTarget.files?.[0] ?? null;
+                  setPreviewFile(nextFile);
+                }}
+              />
+              <small className="field-helper">
+                Phase 1 speichert das Bild bereits mit dem Lead. OCR folgt im naechsten Schritt.
+              </small>
+            </label>
+
+            {previewUrl ? (
+              <div className="field field-full">
+                <div className="upload-preview">
+                  <div className="upload-preview__image-wrap">
+                    <Image
+                      src={previewUrl}
+                      alt="Visitenkarten-Vorschau"
+                      fill
+                      unoptimized
+                      className="upload-preview__image"
+                    />
+                  </div>
+                  <div className="upload-preview__meta">
+                    <strong>{previewFile?.name}</strong>
+                    <span>
+                      {previewFile ? `${Math.round(previewFile.size / 1024)} KB` : null}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ) : null}
 
             <label className="field">
               <span>Client</span>

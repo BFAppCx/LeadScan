@@ -2,4 +2,11 @@
 set -eu
 
 echo "LeadCard pre-commit: typecheck must pass before commit."
-cmd //c npm.cmd run verify:quick
+NODE_EXE="/c/Program Files/nodejs/node.exe"
+
+if [ ! -x "$NODE_EXE" ]; then
+  echo "Node.js wurde nicht unter $NODE_EXE gefunden."
+  exit 1
+fi
+
+"$NODE_EXE" ./node_modules/typescript/bin/tsc --noEmit

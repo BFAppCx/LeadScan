@@ -151,6 +151,13 @@ alter table public.contacts enable row level security;
 alter table public.business_card_assets enable row level security;
 alter table public.qualification_responses enable row level security;
 alter table public.research_snapshots enable row level security;
+alter table public.profiles enable row level security;
+
+create policy "users_manage_own_profile"
+on public.profiles
+for all
+using (id = auth.uid())
+with check (id = auth.uid());
 
 create policy "users_manage_own_clients" on public.clients
 for all using (owner_user_id = auth.uid()) with check (owner_user_id = auth.uid());

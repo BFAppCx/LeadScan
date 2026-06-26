@@ -1,4 +1,4 @@
-import { NewLeadFormPreview } from "@/components/leads/new-lead-form-preview";
+import { NewLeadForm } from "@/components/leads/new-lead-form";
 import { AppShell } from "@/components/shell/app-shell";
 import {
   getClientsData,
@@ -19,7 +19,7 @@ export default async function NewLeadPage() {
       title="Lead in unter 90 Sekunden erfassen"
       description="Der Einstieg bleibt bewusst kompakt: Quelle waehlen, Client taggen, Gespraech notieren und direkt qualifizieren."
     >
-      <NewLeadFormPreview
+      <NewLeadForm
         clients={clients}
         events={events}
         qualificationQuestions={qualificationQuestions}

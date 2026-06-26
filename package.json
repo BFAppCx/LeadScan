@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "verify:quick": "npm run typecheck",
+    "verify": "npm run verify:quick && npm run build"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",

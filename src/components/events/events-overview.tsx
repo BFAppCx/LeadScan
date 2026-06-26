@@ -1,13 +1,17 @@
-import type { EventItem } from "@/lib/app-data";
+import type { Client, EventItem } from "@/lib/app-data";
+import { NewEventForm } from "@/components/events/new-event-form";
 import { SurfaceCard } from "@/components/ui/surface-card";
 
 type EventsOverviewProps = {
   events: EventItem[];
+  clients: Client[];
 };
 
-export function EventsOverview({ events }: EventsOverviewProps) {
+export function EventsOverview({ events, clients }: EventsOverviewProps) {
   return (
     <div className="content-grid">
+      <NewEventForm clients={clients} />
+
       <SurfaceCard title="Events mit Lead-Aufkommen">
         <div className="stack-list">
           {events.map((event) => (

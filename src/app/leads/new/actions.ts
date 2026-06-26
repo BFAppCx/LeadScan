@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { hasSupabaseEnv } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { ensureCurrentUserProfile } from "@/server/leadcard-auth";
 
 export type NewLeadFormState = {
   error?: string;
@@ -54,21 +55,18 @@ export async function createLeadAction(
   }
 
   const supabase = await createSupabaseServerClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
+  const profileResult = await ensureCurrentUserProfile();
 
-  if (!user) {
+  if (!profileResult.ok) {
     return {
-      error:
-        "Speichern ist vorbereitet, aber Login/Auth ist noch nicht aktiviert. Als naechsten Schritt verdrahte ich dir den Sign-in mit Supabase."
+      error: profileResult.error
     };
   }
 
   const leadInsert = await supabase
     .from("leads")
     .insert({
-      owner_user_id: user.id,
+      owner_user_id: profileResult.user.id,
       client_id: clientId,
       event_id: eventId || null,
       source_type: sourceType,
@@ -112,5 +110,5 @@ export async function createLeadAction(
   revalidatePath("/clients");
   revalidatePath("/events");
   revalidatePath("/leads");
-  redirect("/leads");
+  redirect("/leads?created=1");
 }

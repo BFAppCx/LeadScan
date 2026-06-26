@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { ReactNode } from "react";
 import { navItems } from "@/lib/app-data";
+import { getAuthViewState } from "@/server/leadcard-auth";
+import { SignOutButton } from "@/components/auth/sign-out-button";
 
 type AppShellProps = {
   title: string;
@@ -9,12 +11,14 @@ type AppShellProps = {
   children: ReactNode;
 };
 
-export function AppShell({
+export async function AppShell({
   title,
   description,
   eyebrow = "LeadCard",
   children
 }: AppShellProps) {
+  const auth = await getAuthViewState();
+
   return (
     <main className="page-shell">
       <div className="backdrop-orb backdrop-orb-left" />
@@ -45,6 +49,30 @@ export function AppShell({
               Erst Lead sichern, dann Quali. Nachbereitung ist spaeter leichter
               als verlorene Informationen.
             </p>
+          </section>
+
+          <section className="sidebar-card sidebar-card-auth">
+            <p className="sidebar-card__label">Account</p>
+            {!auth.hasSupabaseEnv ? (
+              <>
+                <strong>Supabase noch nicht verbunden</strong>
+                <p>Trage zuerst die Keys in `.env.local` ein.</p>
+              </>
+            ) : auth.isSignedIn ? (
+              <>
+                <strong>{auth.email}</strong>
+                <p>Angemeldet und bereit fuer echte Datenspeicherung.</p>
+                <SignOutButton />
+              </>
+            ) : (
+              <>
+                <strong>Noch nicht angemeldet</strong>
+                <p>Lead-Speicherung wird aktiv, sobald du dich per Magic Link einloggst.</p>
+                <Link href="/auth" className="ghost-button-link">
+                  Login oeffnen
+                </Link>
+              </>
+            )}
           </section>
         </aside>
 

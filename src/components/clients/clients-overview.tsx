@@ -1,4 +1,5 @@
 import type { Client } from "@/lib/app-data";
+import { NewClientForm } from "@/components/clients/new-client-form";
 import { SurfaceCard } from "@/components/ui/surface-card";
 
 type ClientsOverviewProps = {
@@ -8,6 +9,8 @@ type ClientsOverviewProps = {
 export function ClientsOverview({ clients }: ClientsOverviewProps) {
   return (
     <div className="content-grid">
+      <NewClientForm />
+
       <SurfaceCard title="Aktive Auftraggeber">
         <div className="table-like">
           {clients.map((client) => (

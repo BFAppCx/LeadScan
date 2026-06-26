@@ -3,17 +3,65 @@ import { SurfaceCard } from "@/components/ui/surface-card";
 
 type LeadsOverviewProps = {
   leads: Lead[];
+  created?: boolean;
 };
 
-export function LeadsOverview({ leads }: LeadsOverviewProps) {
+function countByWarmth(leads: Lead[], warmth: Lead["warmth"]) {
+  return leads.filter((lead) => lead.warmth === warmth).length;
+}
+
+function countByStatus(leads: Lead[], status: string) {
+  return leads.filter((lead) => lead.status === status).length;
+}
+
+export function LeadsOverview({ leads, created = false }: LeadsOverviewProps) {
   return (
     <div className="content-grid">
+      {created ? (
+        <p className="form-notice form-notice-success">
+          Lead wurde gespeichert und liegt jetzt in deiner Inbox.
+        </p>
+      ) : null}
+
+      <section className="stat-grid">
+        <article className="stat-card">
+          <span>Alle Leads</span>
+          <strong>{leads.length}</strong>
+        </article>
+        <article className="stat-card stat-card-success">
+          <span>Heisse Leads</span>
+          <strong>{countByWarmth(leads, "heiss")}</strong>
+        </article>
+        <article className="stat-card">
+          <span>Follow-up planen</span>
+          <strong>{countByStatus(leads, "Follow-up planen")}</strong>
+        </article>
+        <article className="stat-card">
+          <span>Research offen</span>
+          <strong>{countByStatus(leads, "Research offen")}</strong>
+        </article>
+      </section>
+
       <SurfaceCard title="Lead Inbox">
+        <div className="filter-row">
+          <span className="filter-chip">Alle</span>
+          <span className="filter-chip filter-chip-active">Heiss</span>
+          <span className="filter-chip">Warm</span>
+          <span className="filter-chip">Kalt</span>
+          <span className="filter-chip">Research</span>
+          <span className="filter-chip">Export</span>
+        </div>
+
         <div className="table-like">
           {leads.map((lead) => (
-            <article key={lead.id} className="table-like__row">
+            <article key={lead.id} className="table-like__row lead-row">
               <div>
-                <strong>{lead.name}</strong>
+                <div className="lead-row__header">
+                  <strong>{lead.name}</strong>
+                  <span className={`warmth-pill warmth-pill-${lead.warmth}`}>
+                    {lead.warmth}
+                  </span>
+                </div>
                 <p>
                   {lead.title} · {lead.company}
                 </p>
@@ -21,6 +69,7 @@ export function LeadsOverview({ leads }: LeadsOverviewProps) {
               <div>
                 <span className="table-like__label">Client</span>
                 <strong>{lead.client}</strong>
+                <p>{lead.event}</p>
               </div>
               <div>
                 <span className="table-like__label">Status</span>

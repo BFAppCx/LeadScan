@@ -1,0 +1,5 @@
+#!/bin/sh
+set -eu
+
+echo "LeadCard pre-commit: typecheck must pass before commit."
+cmd //c npm.cmd run verify:quick

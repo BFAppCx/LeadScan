@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getBusinessCardBucket } from "@/lib/supabase/config";
+import { extractBusinessCardWithOpenAi, hasOpenAiApiKey } from "@/lib/openai";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ensureCurrentUserProfile } from "@/server/leadcard-auth";
 
@@ -130,5 +132,98 @@ export async function updateLeadReviewAction(
 
   return {
     success: "Lead wurde aktualisiert."
+  };
+}
+
+export async function runBusinessCardOcrAction(
+  _prevState: LeadReviewFormState,
+  formData: FormData
+): Promise<LeadReviewFormState> {
+  const leadId = String(formData.get("leadId") ?? "").trim();
+
+  if (!leadId) {
+    return {
+      error: "Lead-ID fehlt fuer den OCR-Lauf."
+    };
+  }
+
+  if (!hasOpenAiApiKey()) {
+    return {
+      error:
+        "OPENAI_API_KEY fehlt noch. Sobald der Key in .env.local liegt, kann ich Visitenkarten automatisch auslesen."
+    };
+  }
+
+  const profileResult = await ensureCurrentUserProfile();
+
+  if (!profileResult.ok) {
+    return {
+      error: profileResult.error
+    };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const cardAssetResult = await supabase
+    .from("business_card_assets")
+    .select("id, image_path")
+    .eq("lead_id", leadId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (cardAssetResult.error) {
+    return {
+      error: `Visitenkarte konnte nicht geladen werden: ${cardAssetResult.error.message}`
+    };
+  }
+
+  if (!cardAssetResult.data?.image_path) {
+    return {
+      error: "Zu diesem Lead ist noch keine Visitenkarte hinterlegt."
+    };
+  }
+
+  const downloadResult = await supabase.storage
+    .from(getBusinessCardBucket())
+    .download(cardAssetResult.data.image_path);
+
+  if (downloadResult.error) {
+    return {
+      error: `Visitenkartenbild konnte nicht geladen werden: ${downloadResult.error.message}`
+    };
+  }
+
+  const mimeType = downloadResult.data.type || "image/jpeg";
+  const imageBytes = new Uint8Array(await downloadResult.data.arrayBuffer());
+
+  try {
+    const extraction = await extractBusinessCardWithOpenAi(imageBytes, mimeType);
+
+    const updateResult = await supabase
+      .from("business_card_assets")
+      .update({
+        ocr_provider: "openai",
+        ocr_raw_text: extraction.rawText || null,
+        ocr_json: extraction
+      })
+      .eq("id", cardAssetResult.data.id);
+
+    if (updateResult.error) {
+      return {
+        error: `OCR-Ergebnis konnte nicht gespeichert werden: ${updateResult.error.message}`
+      };
+    }
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error ? error.message : "OCR-Lauf ist fehlgeschlagen."
+    };
+  }
+
+  revalidatePath("/leads");
+  revalidatePath(`/leads/${leadId}`);
+
+  return {
+    success: "OCR-Vorschlag wurde erzeugt und in die Review-Maske geladen."
   };
 }

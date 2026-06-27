@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useActionState } from "react";
 import type { LeadReviewData } from "@/lib/app-data";
 import {
+  runBusinessCardOcrAction,
   updateLeadReviewAction,
   type LeadReviewFormState
 } from "@/app/leads/[leadId]/actions";
@@ -16,6 +17,19 @@ type LeadReviewFormProps = {
 export function LeadReviewForm({ lead }: LeadReviewFormProps) {
   const initialState: LeadReviewFormState = {};
   const [state, formAction, isPending] = useActionState(updateLeadReviewAction, initialState);
+  const [ocrState, ocrAction, isOcrPending] = useActionState(
+    runBusinessCardOcrAction,
+    initialState
+  );
+  const mergedFields = {
+    fullName: lead.fullName || lead.ocrSuggestion.fullName,
+    companyName: lead.companyName || lead.ocrSuggestion.companyName,
+    jobTitle: lead.jobTitle || lead.ocrSuggestion.jobTitle,
+    email: lead.email || lead.ocrSuggestion.email,
+    phone: lead.phone || lead.ocrSuggestion.phone,
+    linkedinUrl: lead.linkedinUrl || lead.ocrSuggestion.linkedinUrl,
+    website: lead.website || lead.ocrSuggestion.website
+  };
 
   return (
     <div className="content-grid">
@@ -77,10 +91,54 @@ export function LeadReviewForm({ lead }: LeadReviewFormProps) {
             </div>
           )}
 
+          <form action={ocrAction} className="ocr-action-bar">
+            <input type="hidden" name="leadId" value={lead.id} />
+            <button
+              type="submit"
+              className="ghost-button"
+              disabled={!lead.hasBusinessCard || isOcrPending}
+            >
+              {isOcrPending ? "OCR laeuft..." : "OCR-Vorschlag erzeugen"}
+            </button>
+            <span className="field-helper">
+              {lead.ocrProvider
+                ? `Letzter OCR-Anbieter: ${lead.ocrProvider}`
+                : "Noch kein OCR-Lauf vorhanden."}
+            </span>
+          </form>
+
+          {ocrState.error ? <p className="form-notice form-notice-error">{ocrState.error}</p> : null}
+          {ocrState.success ? (
+            <p className="form-notice form-notice-success">{ocrState.success}</p>
+          ) : null}
+
           <div className="ocr-panel">
             <span className="table-like__label">OCR Rohtext</span>
             <p>{lead.ocrRawText || "Noch kein OCR-Ergebnis vorhanden."}</p>
           </div>
+
+          {lead.ocrSuggestion.fullName ||
+          lead.ocrSuggestion.companyName ||
+          lead.ocrSuggestion.email ||
+          lead.ocrSuggestion.phone ? (
+            <div className="ocr-panel">
+              <span className="table-like__label">OCR Feldvorschlaege</span>
+              <div className="ocr-suggestion-list">
+                {lead.ocrSuggestion.fullName ? (
+                  <span>Name: {lead.ocrSuggestion.fullName}</span>
+                ) : null}
+                {lead.ocrSuggestion.companyName ? (
+                  <span>Firma: {lead.ocrSuggestion.companyName}</span>
+                ) : null}
+                {lead.ocrSuggestion.jobTitle ? (
+                  <span>Rolle: {lead.ocrSuggestion.jobTitle}</span>
+                ) : null}
+                {lead.ocrSuggestion.email ? <span>E-Mail: {lead.ocrSuggestion.email}</span> : null}
+                {lead.ocrSuggestion.phone ? <span>Telefon: {lead.ocrSuggestion.phone}</span> : null}
+                {lead.ocrSuggestion.website ? <span>Website: {lead.ocrSuggestion.website}</span> : null}
+              </div>
+            </div>
+          ) : null}
         </SurfaceCard>
 
         <SurfaceCard title="Korrektur und Quali" accent>
@@ -109,37 +167,41 @@ export function LeadReviewForm({ lead }: LeadReviewFormProps) {
 
             <label className="field">
               <span>Kontaktname</span>
-              <input name="fullName" defaultValue={lead.fullName} />
+              <input name="fullName" defaultValue={mergedFields.fullName} />
             </label>
 
             <label className="field">
               <span>Firma</span>
-              <input name="companyName" defaultValue={lead.companyName} />
+              <input name="companyName" defaultValue={mergedFields.companyName} />
             </label>
 
             <label className="field">
               <span>Rolle</span>
-              <input name="jobTitle" defaultValue={lead.jobTitle} />
+              <input name="jobTitle" defaultValue={mergedFields.jobTitle} />
             </label>
 
             <label className="field">
               <span>E-Mail</span>
-              <input name="email" type="email" defaultValue={lead.email} />
+              <input name="email" type="email" defaultValue={mergedFields.email} />
             </label>
 
             <label className="field">
               <span>Telefon</span>
-              <input name="phone" defaultValue={lead.phone} />
+              <input name="phone" defaultValue={mergedFields.phone} />
             </label>
 
             <label className="field">
               <span>LinkedIn</span>
-              <input name="linkedinUrl" defaultValue={lead.linkedinUrl} placeholder="https://..." />
+              <input
+                name="linkedinUrl"
+                defaultValue={mergedFields.linkedinUrl}
+                placeholder="https://..."
+              />
             </label>
 
             <label className="field field-full">
               <span>Website</span>
-              <input name="website" defaultValue={lead.website} placeholder="https://..." />
+              <input name="website" defaultValue={mergedFields.website} placeholder="https://..." />
             </label>
 
             <label className="field">

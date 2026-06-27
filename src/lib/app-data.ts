@@ -67,6 +67,16 @@ export type LeadReviewData = {
   businessCardImageUrl: string | null;
   businessCardImagePath: string | null;
   ocrRawText: string;
+  ocrProvider: string;
+  ocrSuggestion: {
+    fullName: string;
+    companyName: string;
+    jobTitle: string;
+    email: string;
+    phone: string;
+    linkedinUrl: string;
+    website: string;
+  };
   qualificationAnswers: {
     need: string;
     roleFit: string;
@@ -287,6 +297,16 @@ export const demoLeadReviewData: LeadReviewData = {
   businessCardImageUrl: null,
   businessCardImagePath: "demo/lead-4/business-card.jpg",
   ocrRawText: "",
+  ocrProvider: "",
+  ocrSuggestion: {
+    fullName: "",
+    companyName: "",
+    jobTitle: "",
+    email: "",
+    phone: "",
+    linkedinUrl: "",
+    website: ""
+  },
   qualificationAnswers: {
     need: "Interesse",
     roleFit: "Einflussnehmer",

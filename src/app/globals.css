@@ -673,7 +673,9 @@ textarea {
 .lead-review-grid,
 .business-card-preview,
 .empty-panel,
-.ocr-panel {
+.ocr-panel,
+.ocr-action-bar,
+.ocr-suggestion-list {
   display: grid;
   gap: 14px;
 }
@@ -748,11 +750,19 @@ textarea {
   background: var(--surface-strong);
 }
 
+.ocr-action-bar {
+  align-items: start;
+}
+
 .empty-panel p,
 .ocr-panel p {
   margin: 0;
   color: var(--muted);
   line-height: 1.5;
+}
+
+.ocr-suggestion-list span {
+  color: var(--foreground);
 }
 
 @media (max-width: 980px) {

@@ -154,7 +154,7 @@ export async function getLeadReviewData(leadId: string): Promise<LeadReviewData 
         contacts (id, full_name, company_name, job_title, email, phone, linkedin_url, website),
         clients (name),
         events (name),
-        business_card_assets (id, image_path, ocr_raw_text, created_at),
+        business_card_assets (id, image_path, ocr_provider, ocr_raw_text, ocr_json, created_at),
         qualification_responses (id, answers, priority, created_at)
       `
     )
@@ -195,6 +195,12 @@ export async function getLeadReviewData(leadId: string): Promise<LeadReviewData 
     latestQualification?.answers && typeof latestQualification.answers === "object"
       ? latestQualification.answers
       : {};
+  const ocrJson =
+    latestCardAsset?.ocr_json && typeof latestCardAsset.ocr_json === "object"
+      ? latestCardAsset.ocr_json
+      : {};
+  const ocrContact =
+    ocrJson.contact && typeof ocrJson.contact === "object" ? ocrJson.contact : {};
 
   return {
     id: data.id,
@@ -216,6 +222,16 @@ export async function getLeadReviewData(leadId: string): Promise<LeadReviewData 
     businessCardImageUrl,
     businessCardImagePath: latestCardAsset?.image_path ?? null,
     ocrRawText: latestCardAsset?.ocr_raw_text ?? "",
+    ocrProvider: latestCardAsset?.ocr_provider ?? "",
+    ocrSuggestion: {
+      fullName: typeof ocrContact.fullName === "string" ? ocrContact.fullName : "",
+      companyName: typeof ocrContact.companyName === "string" ? ocrContact.companyName : "",
+      jobTitle: typeof ocrContact.jobTitle === "string" ? ocrContact.jobTitle : "",
+      email: typeof ocrContact.email === "string" ? ocrContact.email : "",
+      phone: typeof ocrContact.phone === "string" ? ocrContact.phone : "",
+      linkedinUrl: typeof ocrContact.linkedinUrl === "string" ? ocrContact.linkedinUrl : "",
+      website: typeof ocrContact.website === "string" ? ocrContact.website : ""
+    },
     qualificationAnswers: {
       need: typeof answers.need === "string" ? answers.need : "",
       roleFit: typeof answers.roleFit === "string" ? answers.roleFit : "",

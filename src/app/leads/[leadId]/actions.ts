@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { extractBusinessCard, getConfiguredOcrProvider } from "@/lib/ocr";
 import { getBusinessCardBucket } from "@/lib/supabase/config";
-import { extractBusinessCardWithOpenAi, hasOpenAiApiKey } from "@/lib/openai";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ensureCurrentUserProfile } from "@/server/leadcard-auth";
 
@@ -147,10 +147,10 @@ export async function runBusinessCardOcrAction(
     };
   }
 
-  if (!hasOpenAiApiKey()) {
+  if (getConfiguredOcrProvider() === "disabled") {
     return {
       error:
-        "OPENAI_API_KEY fehlt noch. Sobald der Key in .env.local liegt, kann ich Visitenkarten automatisch auslesen."
+        "Noch kein OCR-Provider aktiv. Fuer ein echtes Mehrnutzer-Setup richten wir SELF_HOSTED_OCR_URL fuer einen eigenen OCR-Service ein."
     };
   }
 
@@ -197,12 +197,12 @@ export async function runBusinessCardOcrAction(
   const imageBytes = new Uint8Array(await downloadResult.data.arrayBuffer());
 
   try {
-    const extraction = await extractBusinessCardWithOpenAi(imageBytes, mimeType);
+    const { provider, extraction } = await extractBusinessCard(imageBytes, mimeType);
 
     const updateResult = await supabase
       .from("business_card_assets")
       .update({
-        ocr_provider: "openai",
+        ocr_provider: provider,
         ocr_raw_text: extraction.rawText || null,
         ocr_json: extraction
       })

@@ -1,0 +1,47 @@
+services:
+  leadcard-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    environment:
+      PORT: 3000
+    depends_on:
+      - ocr-worker
+    networks:
+      - leadcard-net
+
+  ocr-worker:
+    build:
+      context: ./services/ocr-worker
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ./services/ocr-worker/.env
+    networks:
+      - leadcard-net
+
+  caddy:
+    image: caddy:2.10
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - leadcard-app
+      - ocr-worker
+    networks:
+      - leadcard-net
+
+networks:
+  leadcard-net:
+
+volumes:
+  caddy_data:
+  caddy_config:

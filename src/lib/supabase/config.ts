@@ -9,3 +9,7 @@ export function hasSupabaseEnv() {
   const { url, anonKey } = getSupabaseEnv();
   return Boolean(url && anonKey);
 }
+
+export function getBusinessCardBucket() {
+  return process.env.NEXT_PUBLIC_SUPABASE_BUSINESS_CARD_BUCKET || "business-cards";
+}

@@ -43,6 +43,46 @@ export type Lead = {
   status: string;
   nextStep: string;
   warmth: "heiss" | "warm" | "kalt";
+  hasBusinessCard: boolean;
+  needsCardReview: boolean;
+};
+
+export type LeadReviewData = {
+  id: string;
+  client: string;
+  event: string;
+  sourceType: string;
+  status: string;
+  warmth: "heiss" | "warm" | "kalt";
+  nextStep: string;
+  rawNotes: string;
+  fullName: string;
+  companyName: string;
+  jobTitle: string;
+  email: string;
+  phone: string;
+  linkedinUrl: string;
+  website: string;
+  hasBusinessCard: boolean;
+  businessCardImageUrl: string | null;
+  businessCardImagePath: string | null;
+  ocrRawText: string;
+  ocrProvider: string;
+  ocrSuggestion: {
+    fullName: string;
+    companyName: string;
+    jobTitle: string;
+    email: string;
+    phone: string;
+    linkedinUrl: string;
+    website: string;
+  };
+  qualificationAnswers: {
+    need: string;
+    roleFit: string;
+    timing: string;
+    priority: string;
+  };
 };
 
 export type QuickAction = {
@@ -169,7 +209,9 @@ export const leads: Lead[] = [
     event: "Food Innovation Camp",
     status: "Research offen",
     nextStep: "Website pruefen und Intro-Mail vorbereiten",
-    warmth: "warm"
+    warmth: "warm",
+    hasBusinessCard: true,
+    needsCardReview: false
   },
   {
     id: "lead-2",
@@ -180,7 +222,9 @@ export const leads: Lead[] = [
     event: "Hannover Messe",
     status: "Follow-up planen",
     nextStep: "Demo-Interesse mit Kunde abstimmen",
-    warmth: "heiss"
+    warmth: "heiss",
+    hasBusinessCard: false,
+    needsCardReview: false
   },
   {
     id: "lead-3",
@@ -191,7 +235,9 @@ export const leads: Lead[] = [
     event: "Food Innovation Camp",
     status: "Export bereit",
     nextStep: "Ins CRM uebernehmen",
-    warmth: "heiss"
+    warmth: "heiss",
+    hasBusinessCard: true,
+    needsCardReview: false
   },
   {
     id: "lead-4",
@@ -200,9 +246,11 @@ export const leads: Lead[] = [
     title: "Plant Director",
     client: "Nordic Robotics",
     event: "Hannover Messe",
-    status: "Quali pruefen",
-    nextStep: "Budgetsignal nachtragen",
-    warmth: "kalt"
+    status: "OCR offen",
+    nextStep: "Visitenkarte pruefen und Quali ergaenzen",
+    warmth: "kalt",
+    hasBusinessCard: true,
+    needsCardReview: true
   }
 ];
 
@@ -228,3 +276,41 @@ export const qualificationQuestions: QualificationQuestion[] = [
     helper: "Follow-up, Intro mit Kunde, kein Fit, Research"
   }
 ];
+
+export const demoLeadReviewData: LeadReviewData = {
+  id: "lead-4",
+  client: "Nordic Robotics",
+  event: "Hannover Messe",
+  sourceType: "business_card",
+  status: "OCR offen",
+  warmth: "kalt",
+  nextStep: "Visitenkarte pruefen und Quali ergaenzen",
+  rawNotes: "Standgespraech war freundlich. Bedarf noch unscharf, aber Werkleitung will intern pruefen.",
+  fullName: "Kemal Yilmaz",
+  companyName: "ForgeLine",
+  jobTitle: "Plant Director",
+  email: "",
+  phone: "",
+  linkedinUrl: "",
+  website: "https://forgeline.example",
+  hasBusinessCard: true,
+  businessCardImageUrl: null,
+  businessCardImagePath: "demo/lead-4/business-card.jpg",
+  ocrRawText: "",
+  ocrProvider: "",
+  ocrSuggestion: {
+    fullName: "",
+    companyName: "",
+    jobTitle: "",
+    email: "",
+    phone: "",
+    linkedinUrl: "",
+    website: ""
+  },
+  qualificationAnswers: {
+    need: "Interesse",
+    roleFit: "Einflussnehmer",
+    timing: "6 Monate",
+    priority: "mittel"
+  }
+};

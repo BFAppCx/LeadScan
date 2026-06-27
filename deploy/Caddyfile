@@ -1,0 +1,11 @@
+{$APP_DOMAIN} {
+  encode zstd gzip
+
+  reverse_proxy leadcard-app:3000
+}
+
+ocr.{$APP_DOMAIN} {
+  encode zstd gzip
+
+  reverse_proxy ocr-worker:8000
+}

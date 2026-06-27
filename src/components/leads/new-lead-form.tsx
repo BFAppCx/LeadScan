@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import Image from "next/image";
+import { useActionState, useMemo, useState } from "react";
 import type {
   Client,
   EventItem,
@@ -22,20 +23,63 @@ export function NewLeadForm({
 }: NewLeadFormProps) {
   const initialState: NewLeadFormState = {};
   const [state, formAction, isPending] = useActionState(createLeadAction, initialState);
+  const [previewFile, setPreviewFile] = useState<File | null>(null);
+  const [sourceType, setSourceType] = useState<"business_card" | "linkedin" | "manual">(
+    "business_card"
+  );
+
+  const previewUrl = useMemo(() => {
+    if (!previewFile) {
+      return null;
+    }
+
+    return URL.createObjectURL(previewFile);
+  }, [previewFile]);
 
   return (
     <div className="content-grid">
       <div className="two-column-grid">
         <SurfaceCard title="Lead erfassen" accent>
           <form action={formAction} className="form-grid">
-            <label className="field">
+            <div className="field field-full">
               <span>Quelle</span>
-              <select name="sourceType" defaultValue="business_card">
-                <option value="business_card">Visitenkarte</option>
-                <option value="linkedin">LinkedIn URL</option>
-                <option value="manual">Manuell</option>
-              </select>
-            </label>
+              <div className="source-toggle" role="tablist" aria-label="Lead-Quelle">
+                <button
+                  type="button"
+                  className={
+                    sourceType === "business_card"
+                      ? "source-toggle__button source-toggle__button-active"
+                      : "source-toggle__button"
+                  }
+                  onClick={() => setSourceType("business_card")}
+                >
+                  Karte scannen
+                </button>
+                <button
+                  type="button"
+                  className={
+                    sourceType === "linkedin"
+                      ? "source-toggle__button source-toggle__button-active"
+                      : "source-toggle__button"
+                  }
+                  onClick={() => setSourceType("linkedin")}
+                >
+                  LinkedIn nutzen
+                </button>
+                <button
+                  type="button"
+                  className={
+                    sourceType === "manual"
+                      ? "source-toggle__button source-toggle__button-active"
+                      : "source-toggle__button"
+                  }
+                  onClick={() => setSourceType("manual")}
+                >
+                  Manuell erfassen
+                </button>
+              </div>
+              <input type="hidden" name="sourceType" value={sourceType} />
+            </div>
 
             <label className="field">
               <span>Lead-Waerme</span>
@@ -45,6 +89,72 @@ export function NewLeadForm({
                 <option value="kalt">Kalt</option>
               </select>
             </label>
+
+            {sourceType === "business_card" ? (
+              <label className="field field-full">
+                <span>Visitenkarte aufnehmen</span>
+                <input
+                  type="file"
+                  name="businessCardImage"
+                  accept="image/png,image/jpeg,image/webp"
+                  capture="environment"
+                  onChange={(event) => {
+                    const nextFile = event.currentTarget.files?.[0] ?? null;
+                    setPreviewFile(nextFile);
+                  }}
+                />
+                <small className="field-helper">
+                  Auf dem Handy oeffnet sich bevorzugt die Rueckkamera. Am Desktop kannst du auch
+                  ein Foto oder Screenshot auswaehlen.
+                </small>
+              </label>
+            ) : null}
+
+            {sourceType === "linkedin" ? (
+              <div className="field field-full source-hint-card">
+                <strong>LinkedIn-Flow</strong>
+                <p>
+                  Fuege direkt das Profil oder die Firmenwebsite ein. Die eigentliche
+                  Hintergrundrecherche haengen wir spaeter an.
+                </p>
+              </div>
+            ) : null}
+
+            {sourceType === "manual" ? (
+              <div className="field field-full source-hint-card">
+                <strong>Manueller Schnellstart</strong>
+                <p>
+                  Ideal, wenn du nur kurz ein Gespraech sichern willst und Karte oder Profil erst
+                  spaeter nachreichst.
+                </p>
+              </div>
+            ) : null}
+
+            {previewUrl ? (
+              <div className="field field-full">
+                <div className="upload-preview">
+                  <div className="upload-preview__image-wrap">
+                    <Image
+                      src={previewUrl}
+                      alt="Visitenkarten-Vorschau"
+                      fill
+                      unoptimized
+                      className="upload-preview__image"
+                    />
+                  </div>
+                  <div className="upload-preview__meta">
+                    <strong>{previewFile?.name}</strong>
+                    <span>
+                      {previewFile ? `${Math.round(previewFile.size / 1024)} KB` : null}
+                    </span>
+                  </div>
+                  <div className="upload-preview__hint">
+                    Bild ist bereit. Nach dem Speichern landet der Lead automatisch in deiner
+                    OCR-Inbox.
+                  </div>
+                </div>
+              </div>
+            ) : null}
 
             <label className="field">
               <span>Client</span>
@@ -109,8 +219,17 @@ export function NewLeadForm({
             </label>
 
             <label className="field">
-              <span>LinkedIn oder Website</span>
-              <input name="websiteOrLinkedin" placeholder="https://..." />
+              <span>
+                {sourceType === "linkedin" ? "LinkedIn URL" : "LinkedIn oder Website"}
+              </span>
+              <input
+                name="websiteOrLinkedin"
+                placeholder={
+                  sourceType === "linkedin"
+                    ? "https://www.linkedin.com/in/..."
+                    : "https://..."
+                }
+              />
             </label>
 
             <label className="field field-full">
@@ -140,7 +259,22 @@ export function NewLeadForm({
           </form>
         </SurfaceCard>
 
-        <SurfaceCard title="Quali-Logik fuer den MVP">
+        <SurfaceCard title="Messemodus">
+          <div className="capture-playbook">
+            <article className="capture-playbook__step">
+              <strong>1. Quelle festlegen</strong>
+              <p>Karte, LinkedIn oder nur die Notiz. So bleibt jeder Lead sofort gesichert.</p>
+            </article>
+            <article className="capture-playbook__step">
+              <strong>2. Kunde taggen</strong>
+              <p>Direkt dem passenden Auftraggeber zuordnen, damit spaeter kein Sortierchaos entsteht.</p>
+            </article>
+            <article className="capture-playbook__step">
+              <strong>3. Naechsten Schritt sichern</strong>
+              <p>Ein klarer Follow-up-Satz ist auf Messen oft wichtiger als perfekte Vollstaendigkeit.</p>
+            </article>
+          </div>
+
           <div className="stack-list">
             {qualificationQuestions.map((question) => (
               <article key={question.label} className="list-row">
@@ -148,7 +282,6 @@ export function NewLeadForm({
                   <strong>{question.label}</strong>
                   <p>{question.helper}</p>
                 </div>
-                <span>{question.input}</span>
               </article>
             ))}
           </div>

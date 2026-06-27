@@ -1,5 +1,9 @@
 create extension if not exists "pgcrypto";
 
+insert into storage.buckets (id, name, public)
+values ('business-cards', 'business-cards', false)
+on conflict (id) do nothing;
+
 create table if not exists public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
   full_name text,
@@ -197,3 +201,43 @@ create policy "users_manage_research_for_own_leads" on public.research_snapshots
 for all
 using (exists (select 1 from public.leads where leads.id = research_snapshots.lead_id and leads.owner_user_id = auth.uid()))
 with check (exists (select 1 from public.leads where leads.id = research_snapshots.lead_id and leads.owner_user_id = auth.uid()));
+
+create policy "authenticated_users_can_upload_own_business_cards"
+on storage.objects
+for insert
+to authenticated
+with check (
+  bucket_id = 'business-cards'
+  and split_part(name, '/', 1) = auth.uid()::text
+);
+
+create policy "authenticated_users_can_view_own_business_cards"
+on storage.objects
+for select
+to authenticated
+using (
+  bucket_id = 'business-cards'
+  and split_part(name, '/', 1) = auth.uid()::text
+);
+
+create policy "authenticated_users_can_update_own_business_cards"
+on storage.objects
+for update
+to authenticated
+using (
+  bucket_id = 'business-cards'
+  and split_part(name, '/', 1) = auth.uid()::text
+)
+with check (
+  bucket_id = 'business-cards'
+  and split_part(name, '/', 1) = auth.uid()::text
+);
+
+create policy "authenticated_users_can_delete_own_business_cards"
+on storage.objects
+for delete
+to authenticated
+using (
+  bucket_id = 'business-cards'
+  and split_part(name, '/', 1) = auth.uid()::text
+);

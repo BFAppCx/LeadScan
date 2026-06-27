@@ -27,6 +27,7 @@ Visitenkarten sollen in LeadCard als erster echter Messe-Input erfasst werden.
 - OCR-Anbieter anbinden
 - Rohtext speichern
 - Strukturierte Felder vorschlagen
+- self-hosted OCR-Worker fuer Mehrnutzerbetrieb vorbereiten
 
 ## Phase 3
 

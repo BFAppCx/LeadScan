@@ -1,0 +1,12 @@
+.git
+.gitignore
+.next
+node_modules
+npm-debug.log
+.env
+.env.local
+.env.production
+services/ocr-worker/.env
+services/ocr-worker/.venv
+services/ocr-worker/__pycache__
+services/ocr-worker/app/__pycache__

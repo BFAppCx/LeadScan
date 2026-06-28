@@ -4,6 +4,7 @@ import { getClientsData, getEventsData } from "@/server/leadcard-data";
 
 export default async function EventsPage() {
   const [events, clients] = await Promise.all([getEventsData(), getClientsData()]);
+  const warning = events.warning ?? clients.warning;
 
   return (
     <AppShell
@@ -11,7 +12,8 @@ export default async function EventsPage() {
       title="Messen und Lead-Aufkommen im Blick"
       description="Events buendeln Leads ueber mehrere Clients hinweg und geben dir eine klare Nachbereitungs-Inbox pro Messe."
     >
-      <EventsOverview events={events} clients={clients} />
+      {warning ? <p className="form-notice form-notice-warning">{warning}</p> : null}
+      <EventsOverview events={events.data} clients={clients.data} />
     </AppShell>
   );
 }

@@ -53,10 +53,28 @@ export async function AppShell({
 
           <section className="sidebar-card sidebar-card-auth">
             <p className="sidebar-card__label">Account</p>
+            <div className="sidebar-status-row">
+              <span
+                className={
+                  auth.hasSupabaseEnv
+                    ? "status-pill status-pill-success"
+                    : "status-pill status-pill-warning"
+                }
+              >
+                {auth.hasSupabaseEnv ? "Live verbunden" : "Setup offen"}
+              </span>
+              <span className="meta-pill">
+                {auth.runtime === "production" ? "Produktiv" : "Entwicklung"}
+              </span>
+            </div>
             {!auth.hasSupabaseEnv ? (
               <>
-                <strong>Supabase noch nicht verbunden</strong>
-                <p>Trage zuerst die Keys in `.env.local` ein.</p>
+                <strong>Backend ist noch nicht voll konfiguriert</strong>
+                <p>
+                  {auth.runtime === "production"
+                    ? "Bitte Server-Konfiguration fuer Supabase pruefen, bevor echte Leads erfasst werden."
+                    : "Trage zuerst die lokalen Supabase-Keys ein, damit echte Daten gespeichert werden."}
+                </p>
               </>
             ) : auth.isSignedIn ? (
               <>

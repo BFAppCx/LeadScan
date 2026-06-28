@@ -11,7 +11,10 @@ export default async function ClientsPage() {
       title="Auftraggeber mit klaren Templates verwalten"
       description="Jeder Client bekommt seinen eigenen Fokus, sein Qualifizierungs-Template und spaeter sein CRM-Mapping."
     >
-      <ClientsOverview clients={clients} />
+      {clients.warning ? (
+        <p className="form-notice form-notice-warning">{clients.warning}</p>
+      ) : null}
+      <ClientsOverview clients={clients.data} />
     </AppShell>
   );
 }

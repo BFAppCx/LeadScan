@@ -19,7 +19,10 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
       title="Alle Messekontakte in einer Inbox"
       description="Hier landen OCR-Korrekturen, offene Quali, Research und der Weg Richtung CRM-Export."
     >
-      <LeadsOverview leads={leads} created={created} />
+      {leads.warning ? (
+        <p className="form-notice form-notice-warning">{leads.warning}</p>
+      ) : null}
+      <LeadsOverview leads={leads.data} created={created} />
     </AppShell>
   );
 }

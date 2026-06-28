@@ -10,6 +10,7 @@ import {
   qualificationQuestions,
   quickActions,
   type Client,
+  type DataState,
   type DashboardStat,
   type EventItem,
   type Lead,
@@ -39,6 +40,21 @@ function buildDemoDashboard(): DashboardData {
   };
 }
 
+function toLiveState<T>(data: T): DataState<T> {
+  return {
+    data,
+    mode: "live"
+  };
+}
+
+function toDemoState<T>(data: T, warning: string): DataState<T> {
+  return {
+    data,
+    mode: "demo",
+    warning
+  };
+}
+
 function buildStats(leads: Lead[]): DashboardStat[] {
   return [
     { label: "Offene Leads", value: String(leads.length) },
@@ -52,9 +68,12 @@ function buildStats(leads: Lead[]): DashboardStat[] {
   ];
 }
 
-export async function getDashboardData(): Promise<DashboardData> {
+export async function getDashboardData(): Promise<DataState<DashboardData>> {
   if (!hasSupabaseEnv()) {
-    return buildDemoDashboard();
+    return toDemoState(
+      buildDemoDashboard(),
+      "Supabase ist in dieser Umgebung noch nicht verbunden. Es werden Demo-Daten angezeigt."
+    );
   }
 
   const supabase = await createSupabaseServerClient();
@@ -78,7 +97,10 @@ export async function getDashboardData(): Promise<DashboardData> {
   ]);
 
   if (clientsResult.error || leadsResult.error) {
-    return buildDemoDashboard();
+    return toDemoState(
+      buildDemoDashboard(),
+      "Live-Daten konnten gerade nicht geladen werden. Bitte Supabase-Verbindung und Rechte pruefen."
+    );
   }
 
   const leads: Lead[] = leadsResult.data.map((lead) => {
@@ -118,21 +140,33 @@ export async function getDashboardData(): Promise<DashboardData> {
     template: "Default Template"
   }));
 
-  return {
+  return toLiveState({
     stats: buildStats(leads),
     pipelineSteps,
     quickActions,
     clients,
     leads
+  });
+}
+
+export async function getClientsData(): Promise<DataState<Client[]>> {
+  const dashboard = await getDashboardData();
+
+  return {
+    data: dashboard.data.clients,
+    mode: dashboard.mode,
+    warning: dashboard.warning
   };
 }
 
-export async function getClientsData() {
-  return (await getDashboardData()).clients;
-}
+export async function getLeadsData(): Promise<DataState<Lead[]>> {
+  const dashboard = await getDashboardData();
 
-export async function getLeadsData() {
-  return (await getDashboardData()).leads;
+  return {
+    data: dashboard.data.leads,
+    mode: dashboard.mode,
+    warning: dashboard.warning
+  };
 }
 
 export async function getLeadReviewData(leadId: string): Promise<LeadReviewData | null> {
@@ -246,9 +280,12 @@ export async function getLeadReviewData(leadId: string): Promise<LeadReviewData 
   };
 }
 
-export async function getEventsData(): Promise<EventItem[]> {
+export async function getEventsData(): Promise<DataState<EventItem[]>> {
   if (!hasSupabaseEnv()) {
-    return demoEvents;
+    return toDemoState(
+      demoEvents,
+      "Supabase ist in dieser Umgebung noch nicht verbunden. Es werden Demo-Daten angezeigt."
+    );
   }
 
   const supabase = await createSupabaseServerClient();
@@ -268,26 +305,31 @@ export async function getEventsData(): Promise<EventItem[]> {
     .order("starts_on", { ascending: false });
 
   if (error) {
-    return demoEvents;
+    return toDemoState(
+      demoEvents,
+      "Live-Events konnten gerade nicht geladen werden. Bitte Supabase-Verbindung und Rechte pruefen."
+    );
   }
 
-  return data.map((event) => ({
-    id: event.id,
-    name: event.name,
-    venue: event.venue ?? "Unbekannter Ort",
-    dates:
-      event.starts_on && event.ends_on && event.starts_on !== event.ends_on
-        ? `${event.starts_on} - ${event.ends_on}`
-        : event.starts_on ?? event.ends_on ?? "Offen",
-    clients:
-      event.event_clients
-        ?.map((item) => {
-          const client = Array.isArray(item.clients) ? item.clients[0] : item.clients;
-          return client?.name;
-        })
-        .filter(Boolean) ?? ["Noch kein Client"],
-    leadCount: event.leads?.length ?? 0
-  }));
+  return toLiveState(
+    data.map((event) => ({
+      id: event.id,
+      name: event.name,
+      venue: event.venue ?? "Unbekannter Ort",
+      dates:
+        event.starts_on && event.ends_on && event.starts_on !== event.ends_on
+          ? `${event.starts_on} - ${event.ends_on}`
+          : event.starts_on ?? event.ends_on ?? "Offen",
+      clients:
+        event.event_clients
+          ?.map((item) => {
+            const client = Array.isArray(item.clients) ? item.clients[0] : item.clients;
+            return client?.name;
+          })
+          .filter(Boolean) ?? ["Noch kein Client"],
+      leadCount: event.leads?.length ?? 0
+    }))
+  );
 }
 
 export async function getQualificationQuestions(): Promise<QualificationQuestion[]> {

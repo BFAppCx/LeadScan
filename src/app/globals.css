@@ -440,6 +440,11 @@ textarea {
   color: #6f5641;
 }
 
+.status-pill-success {
+  background: #e7f4eb;
+  color: #245d3d;
+}
+
 .status-pill-warning {
   background: #fbe7dc;
   color: #9a3b11;
@@ -547,6 +552,11 @@ textarea {
   color: #245d3d;
 }
 
+.form-notice-warning {
+  background: #fff4df;
+  color: #8a5a12;
+}
+
 .primary-button {
   min-height: 52px;
   border: 0;
@@ -581,6 +591,12 @@ textarea {
 
 .sidebar-card-auth {
   gap: 10px;
+}
+
+.sidebar-status-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .auth-page {

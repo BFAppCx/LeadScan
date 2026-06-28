@@ -1,19 +1,21 @@
 import "server-only";
 
-import { hasSupabaseEnv } from "@/lib/supabase/config";
+import { hasSupabaseEnv, isProductionRuntime } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export type AuthViewState = {
   hasSupabaseEnv: boolean;
   isSignedIn: boolean;
   email?: string;
+  runtime: "production" | "development";
 };
 
 export async function getAuthViewState(): Promise<AuthViewState> {
   if (!hasSupabaseEnv()) {
     return {
       hasSupabaseEnv: false,
-      isSignedIn: false
+      isSignedIn: false,
+      runtime: isProductionRuntime() ? "production" : "development"
     };
   }
 
@@ -25,7 +27,8 @@ export async function getAuthViewState(): Promise<AuthViewState> {
   return {
     hasSupabaseEnv: true,
     isSignedIn: Boolean(user),
-    email: user?.email
+    email: user?.email,
+    runtime: isProductionRuntime() ? "production" : "development"
   };
 }
 

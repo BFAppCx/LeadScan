@@ -5,6 +5,10 @@ export function getSupabaseEnv() {
   };
 }
 
+export function isProductionRuntime() {
+  return process.env.NODE_ENV === "production";
+}
+
 export function hasSupabaseEnv() {
   const { url, anonKey } = getSupabaseEnv();
   return Boolean(url && anonKey);

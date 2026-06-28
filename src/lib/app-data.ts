@@ -10,6 +10,14 @@ export type DashboardStat = {
   tone?: "default" | "success";
 };
 
+export type RuntimeMode = "demo" | "live";
+
+export type DataState<T> = {
+  data: T;
+  mode: RuntimeMode;
+  warning?: string;
+};
+
 export type PipelineStep = {
   title: string;
   description: string;

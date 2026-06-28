@@ -5,9 +5,10 @@ import { sendMagicLinkAction, type AuthFormState } from "@/app/auth/actions";
 
 type AuthCardProps = {
   callbackError?: boolean;
+  runtime: "production" | "development";
 };
 
-export function AuthCard({ callbackError = false }: AuthCardProps) {
+export function AuthCard({ callbackError = false, runtime }: AuthCardProps) {
   const initialState: AuthFormState = callbackError
     ? {
         error:
@@ -20,11 +21,12 @@ export function AuthCard({ callbackError = false }: AuthCardProps) {
   return (
     <main className="auth-page">
       <section className="auth-card">
-        <div className="eyebrow">Supabase Auth</div>
+        <div className="eyebrow">{runtime === "production" ? "Produktiv Login" : "Supabase Auth"}</div>
         <h1 className="auth-card__title">LeadCard Login per Magic Link</h1>
         <p className="auth-card__copy">
-          Fuer den Start halten wir es einfach: E-Mail eingeben, Link oeffnen,
-          zur App zurueckkehren.
+          {runtime === "production"
+            ? "Mit deinem Magic Link meldest du dich direkt in der Live-App an und kannst Leads sicher speichern."
+            : "Fuer den Start halten wir es einfach: E-Mail eingeben, Link oeffnen, zur App zurueckkehren."}
         </p>
 
         <form action={formAction} className="auth-form">

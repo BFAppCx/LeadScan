@@ -12,6 +12,7 @@ export default async function NewLeadPage() {
     getEventsData(),
     getQualificationQuestions()
   ]);
+  const warning = clients.warning ?? events.warning;
 
   return (
     <AppShell
@@ -19,9 +20,10 @@ export default async function NewLeadPage() {
       title="Lead in unter 90 Sekunden erfassen"
       description="Der Einstieg bleibt bewusst kompakt: Quelle waehlen, Client taggen, Gespraech notieren und direkt qualifizieren."
     >
+      {warning ? <p className="form-notice form-notice-warning">{warning}</p> : null}
       <NewLeadForm
-        clients={clients}
-        events={events}
+        clients={clients.data}
+        events={events.data}
         qualificationQuestions={qualificationQuestions}
       />
     </AppShell>

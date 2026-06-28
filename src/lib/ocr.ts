@@ -13,6 +13,13 @@ export type BusinessCardExtraction = {
 
 type OcrProvider = "self_hosted" | "openai" | "disabled";
 
+const DEFAULT_SELF_HOSTED_OCR_URL =
+  "https://ocr.leadscan.marktformsales.de/extract/business-card";
+
+function getSelfHostedOcrUrl() {
+  return process.env.SELF_HOSTED_OCR_URL?.trim() || DEFAULT_SELF_HOSTED_OCR_URL;
+}
+
 function getOcrProvider(): OcrProvider {
   const value = process.env.OCR_PROVIDER?.trim().toLowerCase();
 
@@ -20,7 +27,7 @@ function getOcrProvider(): OcrProvider {
     return value;
   }
 
-  if (process.env.SELF_HOSTED_OCR_URL?.trim()) {
+  if (getSelfHostedOcrUrl()) {
     return "self_hosted";
   }
 
@@ -54,11 +61,7 @@ async function extractWithSelfHosted(
   imageBytes: Uint8Array,
   mimeType: string
 ): Promise<BusinessCardExtraction> {
-  const endpoint = process.env.SELF_HOSTED_OCR_URL?.trim();
-
-  if (!endpoint) {
-    throw new Error("SELF_HOSTED_OCR_URL fehlt noch.");
-  }
+  const endpoint = getSelfHostedOcrUrl();
 
   const sharedSecret = process.env.SELF_HOSTED_OCR_SECRET?.trim();
   const response = await fetch(endpoint, {
@@ -75,6 +78,19 @@ async function extractWithSelfHosted(
 
   if (!response.ok) {
     const errorText = await response.text();
+
+    if (response.status === 401) {
+      throw new Error(
+        "Self-hosted OCR lehnt die Anfrage ab. Bitte SELF_HOSTED_OCR_SECRET in der App-Umgebung pruefen."
+      );
+    }
+
+    if (response.status === 404) {
+      throw new Error(
+        `Self-hosted OCR-Endpunkt nicht gefunden. Bitte SELF_HOSTED_OCR_URL pruefen: ${endpoint}`
+      );
+    }
+
     throw new Error(`Self-hosted OCR fehlgeschlagen: ${errorText}`);
   }
 
@@ -196,7 +212,7 @@ export async function extractBusinessCard(
 
   if (provider === "disabled") {
     throw new Error(
-      "Noch kein OCR-Provider konfiguriert. Fuer echte Nutzer empfehle ich SELF_HOSTED_OCR_URL statt persoenlicher API-Tokens."
+      "Noch kein OCR-Provider konfiguriert. Aktiviere OCR_PROVIDER=self_hosted oder hinterlege SELF_HOSTED_OCR_URL."
     );
   }
 

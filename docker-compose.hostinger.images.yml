@@ -1,0 +1,42 @@
+services:
+  leadcard-app:
+    image: ghcr.io/bfappcx/leadscan-app:live
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    environment:
+      PORT: 3000
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=${TRAEFIK_NETWORK:-traefik-proxy}
+      - traefik.http.routers.leadscan.rule=Host(`${APP_DOMAIN}`)
+      - traefik.http.routers.leadscan.entrypoints=websecure
+      - traefik.http.routers.leadscan.tls=true
+      - traefik.http.routers.leadscan.tls.certresolver=letsencrypt
+      - traefik.http.services.leadscan.loadbalancer.server.port=3000
+    networks:
+      - leadcard-net
+      - traefik-proxy
+
+  ocr-worker:
+    image: ghcr.io/bfappcx/leadscan-ocr-worker:live
+    restart: unless-stopped
+    env_file:
+      - ./services/ocr-worker/.env
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=${TRAEFIK_NETWORK:-traefik-proxy}
+      - traefik.http.routers.leadscan-ocr.rule=Host(`${OCR_DOMAIN}`)
+      - traefik.http.routers.leadscan-ocr.entrypoints=websecure
+      - traefik.http.routers.leadscan-ocr.tls=true
+      - traefik.http.routers.leadscan-ocr.tls.certresolver=letsencrypt
+      - traefik.http.services.leadscan-ocr.loadbalancer.server.port=8000
+    networks:
+      - leadcard-net
+      - traefik-proxy
+
+networks:
+  leadcard-net:
+  traefik-proxy:
+    external: true
+    name: ${TRAEFIK_NETWORK:-traefik-proxy}

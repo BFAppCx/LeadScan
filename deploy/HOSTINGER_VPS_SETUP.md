@@ -2,12 +2,13 @@
 
 ## Empfehlung
 
-Der einfachste produktionsreife Weg fuer LeadScan auf einem Hostinger `VPS` ist:
+Der stabilste Weg fuer LeadScan auf einem Hostinger `VPS` ist:
 
 - `LeadCard` als Docker-Container
 - `OCR Worker` als zweiter Docker-Container
-- `Caddy` davor fuer HTTPS und Reverse Proxy
+- vorhandenes `Traefik` auf dem VPS fuer HTTPS und Routing
 - `Supabase` bleibt extern fuer Datenbank, Auth und Storage
+- keine lokalen `build:`-Deploys im Docker Manager, sondern vorgebaute Images
 
 ## Wichtig
 
@@ -55,20 +56,27 @@ OCR_PADDLE_LANG=en
 OCR_MAX_IMAGE_BYTES=10485760
 ```
 
-### 3. Domain in Caddy setzen
+### 3. Domains und Traefik-Netzwerk setzen
 
-Der Compose-Stack erwartet eine Umgebungsvariable `APP_DOMAIN`.
+Der image-basierte Compose-Stack erwartet:
 
-Beispiel:
-
-```bash
-APP_DOMAIN=app.deine-domain.de
+```env
+APP_DOMAIN=leadscan.marktformsales.de
+OCR_DOMAIN=ocr.leadscan.marktformsales.de
+TRAEFIK_NETWORK=traefik-proxy
 ```
 
-Dann wird:
+## GitHub Images vorbereiten
 
-- `app.deine-domain.de` zur Next.js-App
-- `ocr.app.deine-domain.de` zum OCR-Worker
+Die Datei [publish-images.yml](C:/Users/Annas/OneDrive/Dokumente/LeadCard/.github/workflows/publish-images.yml)
+baut bei jedem Push auf `live` zwei GHCR-Images:
+
+- `ghcr.io/bfappcx/leadscan-app:live`
+- `ghcr.io/bfappcx/leadscan-ocr-worker:live`
+
+Wichtig:
+
+- In GitHub Packages beide Container auf `public` setzen, damit Hostinger sie ohne Login ziehen kann.
 
 ## Auf dem Server deployen
 
@@ -77,7 +85,7 @@ Dann wird:
 ```bash
 git clone https://github.com/BFAppCx/LeadScan.git
 cd LeadScan
-git checkout feature/business-card-ocr
+git checkout live
 ```
 
 ### 2. Env-Dateien anlegen
@@ -87,8 +95,10 @@ git checkout feature/business-card-ocr
 
 ### 3. Stack starten
 
+Nicht `docker-compose.hostinger.yml`, sondern den image-basierten Stack nutzen:
+
 ```bash
-APP_DOMAIN=app.deine-domain.de docker compose -f docker-compose.hostinger.yml up -d --build
+APP_DOMAIN=leadscan.marktformsales.de OCR_DOMAIN=ocr.leadscan.marktformsales.de TRAEFIK_NETWORK=traefik-proxy docker compose -f docker-compose.hostinger.images.yml up -d
 ```
 
 ### 4. Healthcheck testen
@@ -96,7 +106,7 @@ APP_DOMAIN=app.deine-domain.de docker compose -f docker-compose.hostinger.yml up
 OCR Worker:
 
 ```bash
-curl https://ocr.app.deine-domain.de/health
+curl https://ocr.leadscan.marktformsales.de/health
 ```
 
 Antwort:
@@ -111,15 +121,15 @@ In `.env.production`:
 
 ```env
 OCR_PROVIDER=self_hosted
-SELF_HOSTED_OCR_URL=https://ocr.app.deine-domain.de/extract/business-card
+SELF_HOSTED_OCR_URL=https://ocr.leadscan.marktformsales.de/extract/business-card
 SELF_HOSTED_OCR_SECRET=dein_langes_geheimes_passwort
 ```
 
 ## Update-Workflow
 
 ```bash
-git pull
-APP_DOMAIN=app.deine-domain.de docker compose -f docker-compose.hostinger.yml up -d --build
+git pull origin live
+APP_DOMAIN=leadscan.marktformsales.de OCR_DOMAIN=ocr.leadscan.marktformsales.de TRAEFIK_NETWORK=traefik-proxy docker compose -f docker-compose.hostinger.images.yml up -d
 ```
 
 ## Was ich dir empfehle

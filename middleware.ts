@@ -3,6 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { getSupabaseEnv } from "@/lib/supabase/config";
 
 export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
   const response = NextResponse.next({
     request: {
       headers: request.headers
@@ -28,11 +29,25 @@ export async function middleware(request: NextRequest) {
     }
   });
 
-  await supabase.auth.getUser();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  const isAuthRoute = pathname === "/auth" || pathname.startsWith("/auth/");
+  const isPublicRoute = isAuthRoute;
+
+  if (!user && !isPublicRoute) {
+    const redirectUrl = new URL("/auth", request.url);
+    return NextResponse.redirect(redirectUrl);
+  }
+
+  if (user && pathname === "/auth") {
+    return NextResponse.redirect(new URL("/", request.url));
+  }
 
   return response;
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"]
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|webp|gif|ico)$).*)"]
 };

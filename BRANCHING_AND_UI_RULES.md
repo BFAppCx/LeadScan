@@ -10,17 +10,47 @@ LeadCard soll weiterentwickelt werden, ohne:
 
 ## Branch-Regeln
 
-### 1. `main` ist geschuetzt
+### 1. Branch-Rollen sind jetzt klar getrennt
 
-Auf `main` kommt nur Code, der:
+- `feature/*` = aktive Entwicklung einzelner Themen
+- `live` = gepruefter Stand, der auf Hostinger ausgerollt wird
+- `main` = stabile interne Hauptlinie und Sicherheitsanker
+
+### 2. `feature/*` ist reine Bauzone
+
+Auf Feature-Branches darf:
+
+- entwickelt
+- ausprobiert
+- umgebaut
+- feinjustiert
+
+werden, solange das Thema klar abgegrenzt bleibt.
+
+### 3. `live` ist der Deploy-Branch
+
+Auf `live` kommt nur Code, der:
 
 - fachlich sinnvoll integriert ist
-- die Quality Gate Checks besteht
-- den betroffenen Flow kurz geprueft hat
+- `npm run verify` besteht
+- im betroffenen Flow kurz geprueft wurde
+- fuer Hostinger freigegeben ist
 
-Keine Experimente direkt auf `main`.
+Hostinger soll kuenftig immer `live` deployen, nicht einzelne Feature-Branches.
 
-### 2. Ein Feature = ein Branch
+### 4. `main` bleibt geschuetzt
+
+`main` bleibt die stabile Produktlinie im Repo.
+
+Damit haben wir:
+
+- einen klaren Live-Zweig fuer Deployment
+- eine saubere Hauptlinie als Rueckfallanker
+- getrennte Feature-Arbeit ohne Chaos
+
+Keine Experimente direkt auf `main` oder `live`.
+
+### 5. Ein Feature = ein Branch
 
 Beispiele:
 
@@ -31,10 +61,10 @@ Beispiele:
 
 Dadurch bleibt jedes Thema separat bearbeitbar.
 
-### 3. Branches werden nicht weggeworfen
+### 6. Branches werden nicht weggeworfen
 
 Wichtige Feature-Branches duerfen bestehen bleiben, auch wenn ihr Inhalt nach
-`main` uebernommen wurde.
+`live` oder `main` uebernommen wurde.
 
 Das hilft bei:
 
@@ -42,13 +72,16 @@ Das hilft bei:
 - Feature-Rueckblick
 - gezielter Wiederaufnahme eines Themenblocks
 
-### 4. Merge-Regel
+### 7. Merge-Regel
 
-Vor einem Merge nach `main` gilt:
+Vor einem Merge nach `live` gilt:
 
 - `npm run verify` muss gruen sein
 - der Hauptflow des Features wird kurz getestet
-- nur dann wird nach `main` uebernommen
+- nur dann wird nach `live` uebernommen
+
+Danach kann ein freigegebener `live`-Stand bei Bedarf nach `main` gespiegelt
+werden.
 
 ## UI-Regeln
 
@@ -109,8 +142,9 @@ Ziel ist:
 
 LeadCard wird ab hier so weitergebaut:
 
-1. stabiles `main`
-2. ein Thema pro Branch
-3. Quality Gate vor Commit und Push
-4. Merge nach `main` erst nach erfolgreichem Verify und kurzem Flow-Test
-5. UI wird inkrementell erweitert, nicht wild umgebaut
+1. ein Thema pro `feature/*` Branch
+2. Quality Gate vor Freigabe
+3. Merge nach `live` erst nach erfolgreichem Verify und kurzem Flow-Test
+4. Hostinger deployt `live`
+5. `main` bleibt als stabile Hauptlinie erhalten
+6. UI wird inkrementell erweitert, nicht wild umgebaut

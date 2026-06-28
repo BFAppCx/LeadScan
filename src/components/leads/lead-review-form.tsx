@@ -12,9 +12,10 @@ import { SurfaceCard } from "@/components/ui/surface-card";
 
 type LeadReviewFormProps = {
   lead: LeadReviewData;
+  flowNotice?: string;
 };
 
-export function LeadReviewForm({ lead }: LeadReviewFormProps) {
+export function LeadReviewForm({ lead, flowNotice }: LeadReviewFormProps) {
   const initialState: LeadReviewFormState = {};
   const [state, formAction, isPending] = useActionState(updateLeadReviewAction, initialState);
   const [ocrState, ocrAction, isOcrPending] = useActionState(
@@ -33,6 +34,8 @@ export function LeadReviewForm({ lead }: LeadReviewFormProps) {
 
   return (
     <div className="content-grid">
+      {flowNotice ? <p className="form-notice form-notice-success">{flowNotice}</p> : null}
+
       <div className="detail-hero">
         <div>
           <div className="lead-row__header">

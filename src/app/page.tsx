@@ -1,8 +1,10 @@
 import { DashboardOverview } from "@/components/dashboard/dashboard-overview";
 import { AppShell } from "@/components/shell/app-shell";
+import { requireAuthenticatedUser } from "@/server/leadcard-auth";
 import { getDashboardData } from "@/server/leadcard-data";
 
 export default async function Home() {
+  await requireAuthenticatedUser();
   const dashboard = await getDashboardData();
 
   return (

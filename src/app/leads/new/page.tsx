@@ -1,5 +1,6 @@
 import { NewLeadForm } from "@/components/leads/new-lead-form";
 import { AppShell } from "@/components/shell/app-shell";
+import { requireAuthenticatedUser } from "@/server/leadcard-auth";
 import {
   getClientsData,
   getEventsData,
@@ -7,6 +8,7 @@ import {
 } from "@/server/leadcard-data";
 
 export default async function NewLeadPage() {
+  await requireAuthenticatedUser();
   const [clients, events, qualificationQuestions] = await Promise.all([
     getClientsData(),
     getEventsData(),

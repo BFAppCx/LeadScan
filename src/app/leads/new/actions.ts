@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { extractBusinessCard, getConfiguredOcrProvider } from "@/lib/ocr";
 import { getBusinessCardBucket, hasSupabaseEnv } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ensureCurrentUserProfile } from "@/server/leadcard-auth";
@@ -154,6 +155,40 @@ export async function createLeadAction(
         error: `Visitenkarten-Metadaten konnten nicht gespeichert werden: ${assetInsert.error.message}`
       };
     }
+
+    let ocrState = "pending";
+
+    if (getConfiguredOcrProvider() !== "disabled") {
+      try {
+        const mimeType = businessCardImage.type || "image/jpeg";
+        const imageBytes = new Uint8Array(await businessCardImage.arrayBuffer());
+        const { provider, extraction } = await extractBusinessCard(imageBytes, mimeType);
+
+        const ocrUpdate = await supabase
+          .from("business_card_assets")
+          .update({
+            ocr_provider: provider,
+            ocr_raw_text: extraction.rawText || null,
+            ocr_json: extraction
+          })
+          .eq("lead_id", leadInsert.data.id);
+
+        if (!ocrUpdate.error) {
+          ocrState = "done";
+        } else {
+          ocrState = "failed";
+        }
+      } catch {
+        ocrState = "failed";
+      }
+    }
+
+    revalidatePath("/");
+    revalidatePath("/clients");
+    revalidatePath("/events");
+    revalidatePath("/leads");
+    revalidatePath(`/leads/${leadInsert.data.id}`);
+    redirect(`/leads/${leadInsert.data.id}?created=1&ocr=${ocrState}`);
   }
 
   revalidatePath("/");

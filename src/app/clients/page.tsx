@@ -1,8 +1,10 @@
 import { ClientsOverview } from "@/components/clients/clients-overview";
 import { AppShell } from "@/components/shell/app-shell";
+import { requireAuthenticatedUser } from "@/server/leadcard-auth";
 import { getClientsData } from "@/server/leadcard-data";
 
 export default async function ClientsPage() {
+  await requireAuthenticatedUser();
   const clients = await getClientsData();
 
   return (

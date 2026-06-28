@@ -1,8 +1,10 @@
 import { EventsOverview } from "@/components/events/events-overview";
 import { AppShell } from "@/components/shell/app-shell";
+import { requireAuthenticatedUser } from "@/server/leadcard-auth";
 import { getClientsData, getEventsData } from "@/server/leadcard-data";
 
 export default async function EventsPage() {
+  await requireAuthenticatedUser();
   const [events, clients] = await Promise.all([getEventsData(), getClientsData()]);
   const warning = events.warning ?? clients.warning;
 

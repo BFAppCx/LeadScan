@@ -1,17 +1,37 @@
-import { NextResponse } from "next/server";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { hasSupabaseEnv } from "@/lib/supabase/config";
+import { type NextRequest, NextResponse } from "next/server";
+import { createServerClient } from "@supabase/ssr";
+import { getSupabaseEnv, hasSupabaseEnv } from "@/lib/supabase/config";
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
   const next = requestUrl.searchParams.get("next") ?? "/";
+  const safeNext = next.startsWith("/") ? next : "/";
 
   if (!hasSupabaseEnv() || !code) {
     return NextResponse.redirect(new URL("/auth", requestUrl.origin));
   }
 
-  const supabase = await createSupabaseServerClient();
+  const redirectResponse = NextResponse.redirect(new URL(safeNext, requestUrl.origin));
+  const { url, anonKey } = getSupabaseEnv();
+
+  if (!url || !anonKey) {
+    return NextResponse.redirect(new URL("/auth", requestUrl.origin));
+  }
+
+  const supabase = createServerClient(url, anonKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value, options }) => {
+          redirectResponse.cookies.set(name, value, options);
+        });
+      }
+    }
+  });
+
   const { error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error) {
@@ -29,5 +49,5 @@ export async function GET(request: Request) {
     });
   }
 
-  return NextResponse.redirect(new URL(next, requestUrl.origin));
+  return redirectResponse;
 }

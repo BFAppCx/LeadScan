@@ -1,5 +1,6 @@
 import { LeadsOverview } from "@/components/leads/leads-overview";
 import { AppShell } from "@/components/shell/app-shell";
+import { requireAuthenticatedUser } from "@/server/leadcard-auth";
 import { getLeadsData } from "@/server/leadcard-data";
 
 type LeadsPageProps = {
@@ -9,6 +10,7 @@ type LeadsPageProps = {
 };
 
 export default async function LeadsPage({ searchParams }: LeadsPageProps) {
+  await requireAuthenticatedUser();
   const leads = await getLeadsData();
   const params = await searchParams;
   const created = params?.created === "1";

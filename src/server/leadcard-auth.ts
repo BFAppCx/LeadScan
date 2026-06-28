@@ -1,5 +1,6 @@
 import "server-only";
 
+import { redirect } from "next/navigation";
 import { hasSupabaseEnv, isProductionRuntime } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -30,6 +31,23 @@ export async function getAuthViewState(): Promise<AuthViewState> {
     email: user?.email,
     runtime: isProductionRuntime() ? "production" : "development"
   };
+}
+
+export async function requireAuthenticatedUser() {
+  if (!hasSupabaseEnv()) {
+    return null;
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/auth");
+  }
+
+  return user;
 }
 
 export async function ensureCurrentUserProfile() {
